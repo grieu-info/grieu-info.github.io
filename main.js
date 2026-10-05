@@ -1,7 +1,7 @@
 /* ==========================================================================
-   Light Table — main.js
+   main.js
    1. LABS: the project data (edit this to add or change a card)
-   2. Rendering of the frames, the AOI locator and the no-image fallback
+   2. Rendering of the projects, the AOI locator and the no-image fallback
    3. Category filters
    4. Theme toggle
    5. GoatCounter events, footer year
@@ -9,7 +9,7 @@
 
 /* ---------- 1. Data ------------------------------------------------------
 
-   Each entry renders one frame in the Labs section. Field reference:
+   Each entry renders one project in the Labs section, in array order. Field reference:
 
    id           Short unique slug. Used in analytics event names.
    title        Card title.
@@ -17,7 +17,7 @@
    description  About two lines of text.
    tags         Stack tags, shown as a list.
    links        [{ label, url, kind }]. kind is "repo", "notebook" or "demo".
-                A url of "#" (or empty) is shown as "<label> — soon", not as a link.
+                Links with a url of "#" (or empty) are not shown.
    media        null, or { type: "image" | "video", src, alt, poster? }.
                 Images: .webp in assets/imgs/. Videos: short muted .mp4 loops.
                 null (or a file that fails to load) shows the fallback frame.
@@ -29,7 +29,7 @@
    attribution  e.g. "Contains modified Copernicus Sentinel data (2023)"
 
    bbox         Optional area of interest [west, south, east, north] in WGS84 degrees.
-                Draws a small locator on the image, or a graticule in the fallback frame.
+                Draws a small locator on the image, or a faint graticule when there is no image.
 */
 
 const CATEGORIES = [
@@ -135,7 +135,7 @@ const LABS = [
       { label: 'Notebook', url: '#', kind: 'notebook' },
     ],
     media: null,
-    sensor: 'Sentinel-2 · Landsat 8/9 · MODIS',
+    sensor: 'Sentinel-2, Landsat 8/9 and MODIS',
     date: '2022-08',
     area: 'Gironde, France',
     attribution: 'Contains modified Copernicus Sentinel data (2022); Landsat courtesy of USGS; MODIS courtesy of NASA',
@@ -156,36 +156,24 @@ function escapeHTML(value) {
     .replace(/'/g, '&#39;');
 }
 
-function pad2(n) {
-  return String(n).padStart(2, '0');
-}
-
 function isValidBbox(b) {
   return Array.isArray(b) && b.length === 4 && b.every(Number.isFinite) && b[0] < b[2] && b[1] < b[3];
 }
 
-function formatLon(lon, digits) {
-  return `${Math.abs(lon).toFixed(digits)}°${lon < 0 ? 'W' : 'E'}`;
-}
-
-function formatLat(lat, digits) {
-  return `${Math.abs(lat).toFixed(digits)}°${lat < 0 ? 'S' : 'N'}`;
-}
-
 function describeBbox([w, s, e, n]) {
-  return `${formatLon(w, 2)} to ${formatLon(e, 2)}, ${formatLat(s, 2)} to ${formatLat(n, 2)}`;
+  const lon = (v) => `${Math.abs(v).toFixed(2)}°${v < 0 ? 'W' : 'E'}`;
+  const lat = (v) => `${Math.abs(v).toFixed(2)}°${v < 0 ? 'S' : 'N'}`;
+  return `${lon(w)} to ${lon(e)}, ${lat(s)} to ${lat(n)}`;
 }
 
 /**
- * Build an SVG graticule centred on a bbox, with the bbox outlined.
+ * SVG graticule centred on a bbox, with the bbox outlined.
  * Equirectangular, longitudes scaled by cos(latitude) so shapes stay honest.
- *   width/height: SVG user units; pad: how much wider than the bbox the view is;
- *   labels: draw degree labels on the edges.
- * Without a bbox, draws a plain square grid (the "no location" fallback).
+ * pad: how much wider than the bbox the view is.
+ * Without a bbox, draws a plain square grid.
  */
-function graticuleSVG(bbox, { width, height, pad, labels }) {
+function graticuleSVG(bbox, { width, height, pad }) {
   const lines = [];
-  const texts = [];
   let aoi = '';
 
   if (!isValidBbox(bbox)) {
@@ -203,29 +191,26 @@ function graticuleSVG(bbox, { width, height, pad, labels }) {
     const viewH = Math.max(n - s, ((e - w) * k) / aspect, 0.05) * pad;
     const viewW = viewH * aspect;
     const latMax = cy + viewH / 2;
+    const latMin = latMax - viewH;
     const lonMin = cx - viewW / (2 * k);
+    const lonMax = lonMin + viewW / k;
 
     const px = (lon) => ((lon - lonMin) * k) / viewW * width;
     const py = (lat) => (latMax - lat) / viewH * height;
 
     const steps = [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2, 5, 10, 20];
     const step = steps.find((st) => viewH / st <= 4) || 30;
-    const digits = step >= 1 ? 0 : step >= 0.1 ? 1 : 2;
 
-    const latMin = latMax - viewH;
     for (let lat = Math.ceil(latMin / step) * step; lat <= latMax; lat += step) {
       const y = py(lat).toFixed(1);
       lines.push(`<line x1="0" y1="${y}" x2="${width}" y2="${y}"/>`);
-      if (labels && +y > 18 && +y < height - 20) texts.push(`<text x="6" y="${(+y - 4).toFixed(1)}">${formatLat(lat, digits)}</text>`);
     }
-    const lonMax = lonMin + viewW / k;
     for (let lon = Math.ceil(lonMin / step) * step; lon <= lonMax; lon += step) {
       const x = px(lon).toFixed(1);
       lines.push(`<line x1="${x}" y1="0" x2="${x}" y2="${height}"/>`);
-      if (labels && +x > 24 && +x < width - 48) texts.push(`<text x="${(+x + 4).toFixed(1)}" y="${height - 6}">${formatLon(lon, digits)}</text>`);
     }
 
-    // AOI rectangle, never smaller than a few units so it stays visible
+    // never smaller than a few units, so it stays visible
     const minSize = 4;
     let rx = px(w);
     let ry = py(n);
@@ -236,24 +221,22 @@ function graticuleSVG(bbox, { width, height, pad, labels }) {
     aoi = `<rect class="aoi" x="${rx.toFixed(1)}" y="${ry.toFixed(1)}" width="${rw.toFixed(1)}" height="${rh.toFixed(1)}"/>`;
   }
 
-  return `<svg class="graticule" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">${lines.join('')}${texts.join('')}${aoi}</svg>`;
+  return `<svg class="graticule" viewBox="0 0 ${width} ${height}" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">${lines.join('')}${aoi}</svg>`;
 }
 
 function fallbackHTML(lab) {
-  const hasBbox = isValidBbox(lab.bbox);
-  const label = hasBbox ? 'No imagery yet' : 'No data';
+  const where = isValidBbox(lab.bbox) ? `. Area of interest: ${escapeHTML(describeBbox(lab.bbox))}` : '';
   return `
-    <div class="frame__empty" role="img" aria-label="No image available${hasBbox ? `. Area of interest: ${escapeHTML(describeBbox(lab.bbox))}` : ''}">
-      ${graticuleSVG(lab.bbox, { width: 640, height: 480, pad: 2.2, labels: true })}
-      <span class="frame__empty-label">${label}</span>
+    <div class="project__empty" role="img" aria-label="No image yet${where}">
+      ${graticuleSVG(lab.bbox, { width: 640, height: 480, pad: 2.4 })}
     </div>`;
 }
 
 function locatorHTML(lab) {
   if (!isValidBbox(lab.bbox)) return '';
   return `
-    <div class="frame__locator" role="img" aria-label="Area of interest: ${escapeHTML(describeBbox(lab.bbox))}">
-      ${graticuleSVG(lab.bbox, { width: 72, height: 54, pad: 3, labels: false })}
+    <div class="project__locator" role="img" aria-label="Area of interest: ${escapeHTML(describeBbox(lab.bbox))}">
+      ${graticuleSVG(lab.bbox, { width: 64, height: 48, pad: 3 })}
     </div>`;
 }
 
@@ -264,7 +247,7 @@ function mediaHTML(lab) {
   const alt = escapeHTML(m.alt || lab.title);
   if (m.type === 'video') {
     const poster = m.poster ? ` poster="${escapeHTML(m.poster)}"` : '';
-    // Autoplay is handled in JS (only while visible, never with reduced motion)
+    // Playback is handled in JS (only while visible, never with reduced motion)
     const controls = reducedMotion.matches ? ' controls' : '';
     return `
       <video muted loop playsinline preload="none"${poster}${controls} aria-label="${alt}" width="800" height="600">
@@ -274,64 +257,57 @@ function mediaHTML(lab) {
   return `<img src="${escapeHTML(m.src)}" alt="${alt}" width="800" height="600" loading="lazy" decoding="async">${locatorHTML(lab)}`;
 }
 
+// Written as a figure caption: "Sentinel-1 GRD, 2023-07-14, Landes, France. Contains modified…"
 function captionHTML(lab) {
-  const fields = [lab.sensor, lab.date, lab.area].filter((f) => f && String(f).trim());
-  const attribution = lab.attribution && String(lab.attribution).trim();
+  const fields = [lab.sensor, lab.date, lab.area].map((f) => String(f ?? '').trim()).filter(Boolean);
+  const attribution = String(lab.attribution ?? '').trim();
   if (!fields.length && !attribution) return '';
-  return `
-    <p class="caption">
-      ${fields.map(escapeHTML).join(' · ')}
-      ${attribution ? `<span class="caption__attribution">${escapeHTML(attribution)}</span>` : ''}
-    </p>`;
+  const parts = [];
+  if (fields.length) parts.push(`${escapeHTML(fields.join(', '))}.`);
+  if (attribution) parts.push(escapeHTML(/[.)]$/.test(attribution) ? attribution : `${attribution}.`));
+  return `<figcaption class="caption">${parts.join(' ')}</figcaption>`;
 }
 
 function linksHTML(lab) {
-  if (!lab.links || !lab.links.length) return '';
-  const items = lab.links.map((link) => {
-    const label = escapeHTML(link.label);
-    if (!link.url || link.url === '#') {
-      return `<li><span class="link-pending">${label} — soon</span></li>`;
-    }
+  // Links without a real url ("#" or empty) are simply not shown
+  const links = (lab.links || []).filter((l) => l.url && l.url !== '#');
+  if (!links.length) return '';
+  const items = links.map((link) => {
     const kind = escapeHTML(link.kind || 'link');
-    return `<li><a href="${escapeHTML(link.url)}" data-gc="outbound-${kind}-${escapeHTML(lab.id)}">${label}<span class="visually-hidden">: ${escapeHTML(lab.title)}</span></a></li>`;
+    return `<li><a href="${escapeHTML(link.url)}" data-gc="outbound-${kind}-${escapeHTML(lab.id)}">${escapeHTML(link.label)}<span class="visually-hidden">: ${escapeHTML(lab.title)}</span></a></li>`;
   });
-  return `<ul class="link-row">${items.join('')}</ul>`;
+  return `<ul class="project__links">${items.join('')}</ul>`;
 }
 
-function frameHTML(lab, index) {
-  const tags = (lab.tags || []).map((t) => `<li>${escapeHTML(t)}</li>`).join('');
+function projectHTML(lab) {
   const titleId = `lab-${escapeHTML(lab.id)}`;
+  const meta = [(lab.categories || []).join(', '), (lab.tags || []).join(', ')].filter(Boolean);
   return `
-    <article class="frame" aria-labelledby="${titleId}">
-      <figure class="frame__figure">
-        <div class="frame__media">${mediaHTML(lab)}</div>
-        <figcaption class="frame__meta">
-          <span class="frame__no" aria-hidden="true">${pad2(index + 1)}</span>
-          ${captionHTML(lab)}
-        </figcaption>
+    <article class="project" aria-labelledby="${titleId}">
+      <figure class="project__figure">
+        <div class="project__media">${mediaHTML(lab)}</div>
+        ${captionHTML(lab)}
       </figure>
-      <p class="frame__category">${(lab.categories || []).map(escapeHTML).join(' · ')}</p>
-      <h3 class="frame__title" id="${titleId}">${escapeHTML(lab.title)}</h3>
-      <p class="frame__desc">${escapeHTML(lab.description)}</p>
-      ${tags ? `<ul class="tags" aria-label="Stack">${tags}</ul>` : ''}
+      <h3 class="project__title" id="${titleId}">${escapeHTML(lab.title)}</h3>
+      <p class="project__desc">${escapeHTML(lab.description)}</p>
+      ${meta.length ? `<p class="project__meta">${meta.map(escapeHTML).join(' — ')}</p>` : ''}
       ${linksHTML(lab)}
     </article>`;
 }
 
-function renderFrames() {
-  const list = document.getElementById('frames');
+function renderProjects() {
+  const list = document.getElementById('projects');
   if (!list) return;
 
   list.innerHTML = LABS.map((lab, i) => {
     const cats = escapeHTML((lab.categories || []).join('|'));
-    return `<li data-categories="${cats}">${frameHTML(lab, i)}</li>`;
+    return `<li data-index="${i}" data-categories="${cats}">${projectHTML(lab)}</li>`;
   }).join('');
 
   // An image that fails to load falls back to the graticule frame
-  list.querySelectorAll('.frame__media img').forEach((img) => {
+  list.querySelectorAll('.project__media img').forEach((img) => {
     img.addEventListener('error', () => {
-      const li = img.closest('li');
-      const lab = LABS[[...list.children].indexOf(li)];
+      const lab = LABS[Number(img.closest('li').dataset.index)];
       img.parentElement.innerHTML = fallbackHTML(lab);
     }, { once: true });
   });
@@ -362,8 +338,8 @@ function setupVideos(root) {
 
 function setupFilters() {
   const container = document.getElementById('filters');
-  const list = document.getElementById('frames');
-  const count = document.getElementById('frame-count');
+  const list = document.getElementById('projects');
+  const status = document.getElementById('filter-status');
   if (!container || !list) return;
 
   // Only show categories that have at least one lab
@@ -377,19 +353,14 @@ function setupFilters() {
   function apply(filter) {
     let shown = 0;
     [...list.children].forEach((li) => {
-      const cats = li.dataset.categories.split('|');
-      const visible = filter === 'All' || cats.includes(filter);
+      const visible = filter === 'All' || li.dataset.categories.split('|').includes(filter);
       li.hidden = !visible;
       if (visible) shown += 1;
     });
     container.querySelectorAll('button').forEach((b) => {
       b.setAttribute('aria-pressed', String(b.dataset.filter === filter));
     });
-    if (count) {
-      count.textContent = filter === 'All'
-        ? `${pad2(LABS.length)} frames`
-        : `${pad2(shown)} of ${pad2(LABS.length)} frames`;
-    }
+    if (status) status.textContent = `Showing ${shown} of ${LABS.length} projects`;
   }
 
   container.addEventListener('click', (event) => {
@@ -412,7 +383,7 @@ function setupTheme() {
 
   function updateButton() {
     const next = current() === 'dark' ? 'light' : 'dark';
-    button.querySelector('.theme-toggle__label').textContent = next === 'dark' ? 'Dark' : 'Light';
+    button.textContent = next === 'dark' ? 'Dark' : 'Light';
     button.setAttribute('aria-label', `Switch to ${next} theme`);
   }
 
@@ -447,7 +418,7 @@ function setYear() {
   if (el) el.textContent = String(new Date().getFullYear());
 }
 
-renderFrames();
+renderProjects();
 setupFilters();
 setupTheme();
 setupAnalytics();

@@ -33,11 +33,11 @@ Projects live in the `LABS` array at the top of `main.js`. Copy an entry and edi
   tags: ['Python', 'xarray'],
   links: [
     { label: 'Repo', url: 'https://github.com/grieu-info/…', kind: 'repo' },
-    { label: 'Notebook', url: '#', kind: 'notebook' },   // "#" shows "Notebook — soon"
+    { label: 'Notebook', url: '#', kind: 'notebook' },   // "#" = not shown yet
   ],
   media: { type: 'image', src: 'assets/imgs/s1-clear-cuts.webp', alt: 'Describe what the image shows' },
   // or a short loop: { type: 'video', src: 'assets/imgs/clip.mp4', poster: 'assets/imgs/clip.webp', alt: '…' }
-  // or null: shows the fallback frame
+  // or null: shows a faint graticule instead
   sensor: 'Sentinel-1 GRD (VV/VH)',       // caption fields: all optional,
   date: '2023-07-14',                     // the caption disappears when they are all empty
   area: 'Landes, France',
@@ -46,10 +46,12 @@ Projects live in the `LABS` array at the top of `main.js`. Copy an entry and edi
 },
 ```
 
-- **Order**: frames are numbered in array order (01, 02, …). Numbers stay fixed when a filter is applied.
+- **Order**: projects appear in array order.
+- **Links**: a link whose url is `#` or empty is hidden, so you can prepare it before the repo is public.
 - **Categories**: the filter buttons come from `CATEGORIES`. A category with no project is not shown.
-- **bbox**: draws a small locator in the corner of the image. Without an image, the frame shows a graticule with the area outlined. Without a bbox or an image, it shows a plain grid labelled "No data".
-- **Images**: export as `.webp` in 4:3 (for example 1600×1200), around 200–400 KB. They are cropped to 4:3. If a file fails to load, the fallback frame is shown instead.
+- **Caption**: written as a figure caption: `sensor, date, area. Attribution.` Empty fields are skipped; with none at all, no caption.
+- **bbox**: draws a small locator in the corner of the image. Without an image, a faint graticule with the area outlined is shown; without bbox either, a plain grid.
+- **Images**: export as `.webp` in 4:3 (for example 1600×1200), around 200–400 KB. They are cropped to 4:3. If a file fails to load, the graticule is shown instead.
 - **Videos**: short `.mp4` (H.264), no audio track, a few MB at most. They play muted and looped only while visible. With "reduced motion" turned on, they don't autoplay and show controls instead.
 - **Alt text**: always set `alt` to what the image shows, not the project title.
 
@@ -66,7 +68,7 @@ assets/cv/guillaume-rieu-cv-fr.pdf
 
 ## Portrait and social preview
 
-- `assets/imgs/portrait.webp`: square, at least 480×480. The placeholder is a grey "GR" tile. The page shows it in grayscale.
+- `assets/imgs/portrait.webp`: square, at least 480×480. The placeholder is a grey "GR" tile.
 - `assets/imgs/og-image.png`: 1200×630 preview used by LinkedIn and others. It is PNG because LinkedIn does not reliably support WebP.
 
 ## GoatCounter
@@ -92,7 +94,7 @@ To track another link, add `data-gc="your-event-name"`.
 
 ## Theme
 
-The site follows the system light/dark setting. The toggle overrides it, and the choice is saved in `localStorage`. Colors are defined as tokens at the top of `style.css`: the light set in `:root`, the dark set twice, once for the system preference and once for the toggle.
+The site follows the system light/dark setting. The toggle overrides it, and the choice is saved in `localStorage`. Colors are tokens at the top of `style.css`: light in `:root`, dark set twice (system preference, and the toggle).
 
 ## Deploy (GitHub Pages)
 

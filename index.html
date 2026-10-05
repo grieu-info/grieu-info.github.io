@@ -9,8 +9,8 @@
   <link rel="canonical" href="https://grieu-info.github.io/">
 
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#f2f2f0" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#111111" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#f6f5f2" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
 
   <!-- Open Graph -->
   <meta property="og:type" content="website">
@@ -66,157 +66,89 @@
 <body>
   <a class="skip-link" href="#main">Skip to content</a>
 
-  <header class="site-header">
-    <div class="wrap site-header__inner">
-      <div class="brand">
-        <h1 class="brand__name">Guillaume Rieu</h1>
-        <p class="brand__tagline">Earth Observation engineer — from satellite data to open platforms</p>
-      </div>
-
-      <nav class="profiles" aria-label="Profiles">
-        <ul class="inline-list">
-          <li><a href="https://github.com/grieu-info" data-gc="outbound-github" rel="me">GitHub</a></li>
-          <li><a href="https://www.linkedin.com/in/guillaume-rieu-9866b468" data-gc="outbound-linkedin" rel="me">LinkedIn</a></li>
-          <li><a href="https://geostratify.com" data-gc="outbound-geostratify">GeoStratify</a></li>
-          <li><a href="mailto:guillaume.rieu@imaginearth.fr" data-gc="contact-email">Email</a></li>
-        </ul>
-      </nav>
-
-      <div class="tools">
-        <p class="cv-links">
-          <span class="label">CV</span>
-          <a href="assets/cv/guillaume-rieu-cv-en.pdf" download data-gc="cv-download-en" hreflang="en">EN<span class="visually-hidden"> (PDF, English)</span></a>
-          <a href="assets/cv/guillaume-rieu-cv-fr.pdf" download data-gc="cv-download-fr" hreflang="fr">FR<span class="visually-hidden"> (PDF, French)</span></a>
-        </p>
-        <button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch theme">
-          <span class="theme-toggle__label">Dark</span>
-        </button>
-      </div>
-    </div>
+  <header class="site-header wrap">
+    <p class="site-name"><a href="#main">Guillaume Rieu</a></p>
+    <nav aria-label="Profiles">
+      <ul class="nav-list">
+        <li><a href="https://github.com/grieu-info" data-gc="outbound-github" rel="me">GitHub</a></li>
+        <li><a href="https://www.linkedin.com/in/guillaume-rieu-9866b468" data-gc="outbound-linkedin" rel="me">LinkedIn</a></li>
+        <li><a href="https://geostratify.com" data-gc="outbound-geostratify">GeoStratify</a></li>
+        <li><button type="button" class="theme-toggle" id="theme-toggle" aria-label="Switch theme">Dark</button></li>
+      </ul>
+    </nav>
   </header>
 
   <main id="main" tabindex="-1">
-    <section class="intro wrap" aria-label="About">
+    <section class="intro wrap" aria-labelledby="intro-title">
       <img class="intro__portrait" src="assets/imgs/portrait.webp" width="240" height="240" alt="Portrait of Guillaume Rieu">
       <div class="intro__text">
-        <p>I have worked in GIS and remote sensing for more than ten years: formerly Head of Agriculture &amp; Forest services at Terranis, now founder of <a href="https://geostratify.com" data-gc="outbound-geostratify">GeoStratify</a> and lead developer of <a href="#strata">Strata</a>.</p>
-        <p>This page collects my technical experiments — code, notebooks and results. Based in Toulouse, France.</p>
+        <h1 id="intro-title">Earth Observation engineer — from satellite data to open platforms</h1>
+        <p>I have worked in GIS and remote sensing for more than ten years: formerly Head of Agriculture &amp; Forest services at Terranis, now founder of <a href="https://geostratify.com" data-gc="outbound-geostratify">GeoStratify</a> and lead developer of <a href="#strata">Strata</a>. Based in Toulouse, France.</p>
+        <p class="intro__contact">
+          <a href="mailto:guillaume.rieu@imaginearth.fr" data-gc="contact-email">guillaume.rieu@imaginearth.fr</a>
+          <span class="sep" aria-hidden="true">·</span>
+          CV in <a href="assets/cv/guillaume-rieu-cv-en.pdf" download data-gc="cv-download-en" hreflang="en">English<span class="visually-hidden"> (PDF)</span></a>
+          or <a href="assets/cv/guillaume-rieu-cv-fr.pdf" download data-gc="cv-download-fr" hreflang="fr">French<span class="visually-hidden"> (PDF)</span></a>
+        </p>
       </div>
     </section>
 
-    <section class="labs" id="labs" aria-labelledby="labs-title">
-      <div class="wrap">
-        <div class="section-head labs__head">
-          <h2 class="section-title" id="labs-title">Labs</h2>
-          <div class="filters" id="filters" role="group" aria-label="Filter labs by category"></div>
-          <p class="frame-count" id="frame-count" aria-live="polite"></p>
-        </div>
+    <section class="section wrap" id="labs" aria-labelledby="labs-title">
+      <div class="section__head">
+        <h2 id="labs-title">Labs</h2>
+        <div class="filters" id="filters" role="group" aria-label="Filter labs by category"></div>
+      </div>
+      <p class="visually-hidden" id="filter-status" aria-live="polite"></p>
 
-        <ol class="frames" id="frames"></ol>
-        <noscript><p class="note">The project list needs JavaScript. All code is on <a href="https://github.com/grieu-info">GitHub</a>.</p></noscript>
+      <ul class="projects" id="projects"></ul>
+      <noscript><p class="muted">The project list needs JavaScript. All code is on <a href="https://github.com/grieu-info">GitHub</a>.</p></noscript>
+    </section>
+
+    <section class="section wrap" id="strata" aria-labelledby="strata-title">
+      <div class="section__head">
+        <h2 id="strata-title">Strata</h2>
+      </div>
+
+      <div class="prose">
+        <p class="lead">An open-source platform built on STAC: one catalog for raster and vector data, notebooks next to the data, and map visualization in the browser. Everything ships as containers, so an instance runs on a single VM.</p>
+
+        <dl class="spec">
+          <div><dt>Storage</dt><dd>Assets in object storage — MinIO (S3), Cloud-Optimized GeoTIFF.</dd></div>
+          <div><dt>Catalog</dt><dd>Items and collections searchable through the STAC API — pgSTAC on PostgreSQL/PostGIS, stac-fastapi.</dd></div>
+          <div><dt>Serving</dt><dd>Dynamic map tiles and GeoJSON features — TiTiler-pgSTAC and a vector API.</dd></div>
+          <div><dt>Use</dt><dd>Browse and preview with STAC Browser, analyse in JupyterHub notebooks.</dd></div>
+          <div><dt>Deployment</dt><dd>One container and repository per service, wired together with Docker Compose behind nginx.</dd></div>
+        </dl>
+
+        <p>The repository is not public yet. Until it opens, feedback on the <a href="https://strata.geostratify.com" data-gc="outbound-strata-demo">live instance</a>, on STAC modelling or on deployment is welcome by <a href="mailto:guillaume.rieu@imaginearth.fr" data-gc="contact-email">email</a>.</p>
       </div>
     </section>
 
-    <section class="strata" id="strata" aria-labelledby="strata-title">
-      <div class="wrap section-grid">
-        <div class="section-grid__label">
-          <p class="eyebrow">Open source</p>
-          <h2 class="section-title" id="strata-title">Strata</h2>
-        </div>
-
-        <div class="section-grid__body">
-          <p class="lead">An open-source platform built on STAC: one catalog for raster and vector data, notebooks next to the data, and map visualization in the browser. Everything ships as containers, so an instance runs on a single VM.</p>
-
-          <h3 class="subhead">Architecture</h3>
-          <ol class="pipeline">
-            <li class="pipeline__stage">
-              <span class="pipeline__no">01</span>
-              <span class="pipeline__name">Store</span>
-              <span class="pipeline__parts">MinIO (S3) · Cloud-Optimized GeoTIFF</span>
-              <span class="pipeline__role">Assets live in object storage.</span>
-            </li>
-            <li class="pipeline__stage">
-              <span class="pipeline__no">02</span>
-              <span class="pipeline__name">Catalog</span>
-              <span class="pipeline__parts">pgSTAC (PostgreSQL / PostGIS) · stac-fastapi</span>
-              <span class="pipeline__role">Items and collections, searchable through the STAC API.</span>
-            </li>
-            <li class="pipeline__stage">
-              <span class="pipeline__no">03</span>
-              <span class="pipeline__name">Serve</span>
-              <span class="pipeline__parts">TiTiler-pgSTAC · vector API</span>
-              <span class="pipeline__role">Dynamic map tiles and GeoJSON features on demand.</span>
-            </li>
-            <li class="pipeline__stage">
-              <span class="pipeline__no">04</span>
-              <span class="pipeline__name">Use</span>
-              <span class="pipeline__parts">STAC Browser · JupyterHub</span>
-              <span class="pipeline__role">Browse and preview in the browser, analyse in notebooks.</span>
-            </li>
-          </ol>
-          <p class="note">Each service has its own container and repository; Docker Compose wires them together behind nginx.</p>
-
-          <h3 class="subhead">Stack</h3>
-          <ul class="tags">
-            <li>Python</li><li>FastAPI</li><li>PostgreSQL</li><li>PostGIS</li><li>pgSTAC</li><li>TiTiler</li><li>MinIO</li><li>JupyterHub</li><li>Docker Compose</li><li>nginx</li>
-          </ul>
-
-          <h3 class="subhead">Contributing</h3>
-          <p>The repository is not public yet. Until it opens, feedback on the live instance, on STAC modelling or on deployment is welcome by <a href="mailto:guillaume.rieu@imaginearth.fr" data-gc="contact-email">email</a>.</p>
-
-          <ul class="link-row">
-            <li><a href="https://strata.geostratify.com" data-gc="outbound-strata-demo">strata.geostratify.com</a></li>
-            <li><span class="link-pending">Repository — not public yet</span></li>
-          </ul>
-        </div>
+    <section class="section wrap" id="teaching" aria-labelledby="teaching-title">
+      <div class="section__head">
+        <h2 id="teaching-title">Teaching</h2>
       </div>
-    </section>
 
-    <section class="teaching" id="teaching" aria-labelledby="teaching-title">
-      <div class="wrap section-grid">
-        <div class="section-grid__label">
-          <p class="eyebrow">Courses</p>
-          <h2 class="section-title" id="teaching-title">Teaching</h2>
-        </div>
-
-        <div class="section-grid__body">
-          <ul class="course-list">
-            <li class="course">
-              <span class="course__where">IDGEO</span>
-              <span class="course__what">Remote sensing modules — master's level</span>
-              <span class="course__materials">Materials not public</span>
-            </li>
-            <li class="course">
-              <span class="course__where">IDGEO</span>
-              <span class="course__what">Remote sensing — professional training</span>
-              <span class="course__materials">Materials not public</span>
-            </li>
-            <li class="course">
-              <span class="course__where">Training</span>
-              <span class="course__what">Drone acquisition and photogrammetry with WebODM</span>
-              <span class="course__materials">Materials not public</span>
-            </li>
-          </ul>
-        </div>
+      <div class="prose">
+        <ul class="courses">
+          <li><span class="courses__title">Remote sensing</span> <span class="muted">IDGEO, master's level</span></li>
+          <li><span class="courses__title">Remote sensing</span> <span class="muted">IDGEO, professional training</span></li>
+          <li><span class="courses__title">Drone acquisition and photogrammetry with WebODM</span> <span class="muted">Professional training</span></li>
+        </ul>
+        <p class="muted">Course materials are not public.</p>
       </div>
     </section>
   </main>
 
-  <footer class="site-footer">
-    <div class="wrap site-footer__inner">
-      <ul class="inline-list">
-        <li><a href="https://github.com/grieu-info" data-gc="outbound-github">GitHub</a></li>
-        <li><a href="https://www.linkedin.com/in/guillaume-rieu-9866b468" data-gc="outbound-linkedin">LinkedIn</a></li>
-        <li><a href="https://geostratify.com" data-gc="outbound-geostratify">GeoStratify</a></li>
-        <li><a href="mailto:guillaume.rieu@imaginearth.fr" data-gc="contact-email">guillaume.rieu@imaginearth.fr</a></li>
-        <li class="cv-links">
-          <span class="label">CV</span>
-          <a href="assets/cv/guillaume-rieu-cv-en.pdf" download data-gc="cv-download-en" hreflang="en">EN<span class="visually-hidden"> (PDF, English)</span></a>
-          <a href="assets/cv/guillaume-rieu-cv-fr.pdf" download data-gc="cv-download-fr" hreflang="fr">FR<span class="visually-hidden"> (PDF, French)</span></a>
-        </li>
-      </ul>
-      <p class="colophon">© <span id="year">2026</span> Guillaume Rieu · Toulouse, France</p>
-    </div>
+  <footer class="site-footer wrap">
+    <p>© <span id="year">2026</span> Guillaume Rieu</p>
+    <ul class="nav-list">
+      <li><a href="https://github.com/grieu-info" data-gc="outbound-github">GitHub</a></li>
+      <li><a href="https://www.linkedin.com/in/guillaume-rieu-9866b468" data-gc="outbound-linkedin">LinkedIn</a></li>
+      <li><a href="https://geostratify.com" data-gc="outbound-geostratify">GeoStratify</a></li>
+      <li><a href="mailto:guillaume.rieu@imaginearth.fr" data-gc="contact-email">Email</a></li>
+      <li>CV <a href="assets/cv/guillaume-rieu-cv-en.pdf" download data-gc="cv-download-en" hreflang="en">EN<span class="visually-hidden"> (PDF, English)</span></a> / <a href="assets/cv/guillaume-rieu-cv-fr.pdf" download data-gc="cv-download-fr" hreflang="fr">FR<span class="visually-hidden"> (PDF, French)</span></a></li>
+    </ul>
   </footer>
 
   <script src="main.js" defer></script>
